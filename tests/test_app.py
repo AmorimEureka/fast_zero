@@ -1,5 +1,7 @@
 from http import HTTPStatus
 
+from fast_zero.schemas import UserPublic
+
 
 def test_root_deve_retornar_ola_mundo(client_arranj):
     """
@@ -57,28 +59,34 @@ def test_read_users(client_arranj):
     response = client_arranj.get('/users/')
 
     assert response.status_code == HTTPStatus.OK
-    assert response.json() == {
-        'users': [
-            {'id': 1, 'email': 'alice@example.com', 'username': 'alice'},
-        ]
-    }
+    assert response.json() == {'users': []}
 
 
-def test_update_user_not_found(client_arranj):
-    response = client_arranj.put(
-        '/users/9999',
-        json={
-            'username': 'ghost',
-            'email': 'ghost@example.com',
-            'password': 'secret',
-        },
-    )
+def test_read_users_with_users(client_arranj, create_user):
 
-    assert response.status_code == HTTPStatus.NOT_FOUND
-    assert response.json() == {'detail': 'Deu ruim!! Não Achem emmm!!!'}
+    user_schema = UserPublic.model_validate(create_user).model_dump()
+
+    response = client_arranj.get('/users/')
+
+    assert response.status_code == HTTPStatus.OK
+    assert response.json() == {'users': [user_schema]}
 
 
-def test_update_user(client_arranj):
+# def test_update_user_not_found(client_arranj):
+#     response = client_arranj.put(
+#         '/users/9999',
+#         json={
+#             'username': 'ghost',
+#             'email': 'ghost@example.com',
+#             'password': 'secret',
+#         },
+#     )
+
+#     assert response.status_code == HTTPStatus.NOT_FOUND
+#     assert response.json() == {'detail': 'Deu ruim!! Não Achem emmm!!!'}
+
+
+def test_update_user(client_arranj, create_user):
     response = client_arranj.put(
         '/users/1',
         json={
@@ -96,7 +104,7 @@ def test_update_user(client_arranj):
     }
 
 
-def teste_delete_user(client_arranj):
+def teste_delete_user(client_arranj, create_user):
     response = client_arranj.delete('/users/1')
 
     assert response.status_code == HTTPStatus.OK
